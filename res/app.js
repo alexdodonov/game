@@ -308,7 +308,10 @@ function displayRoundResultIfNecessary(result) {
 }
 
 function displayBattleHistory(result) {
-	var battleHistory = 'No rounds yet<br/>';
+	var battleHistory;
+	if(result.history.length==0) {
+		battleHistory = 'No rounds yet<br/>';
+	}
 	for(var i = 0; i<result.history.length; i++) {
 		result.history[i]['usera_move'] = result.history[i]['usera_move'] == 'none' ? 'no move' : result.history[i]['usera_move'];
 		result.history[i]['userb_move'] = result.history[i]['userb_move'] == 'none' ? 'no move' : result.history[i]['userb_move'];

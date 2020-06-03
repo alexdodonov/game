@@ -251,7 +251,7 @@ class AjaxKernel extends AjaxApplication
             'WRITE'
         ]);
 
-        $remainingTime = 30 - time() + strtotime($currentRound['creation_date']) - 3600;
+        $remainingTime = 30 - time() + strtotime($currentRound['creation_date']) - 3 * 3600;
         if ($remainingTime <= 0 && $currentRound['usera_move'] == 'none' && $currentRound['userb_move'] == 'none') {
             $round->restartRound($currentRound['id']);
             $remainingTime = 30;
