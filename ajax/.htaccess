@@ -1,0 +1,26 @@
+# show php errors
+php_flag display_startup_errors on
+php_flag display_errors on
+php_flag html_errors on
+
+<Limit GET POST PUT DELETE>
+  Allow from all
+</Limit>
+
+# use mod_rewrite for pretty URL support
+RewriteEngine on
+
+RewriteRule ^vendor/(.*).css$ vendor/$1.css [L]
+RewriteRule ^res/css/(.*)$ res/css/$1 [L]
+
+RewriteRule ^vendor/(.*).js$ vendor/$1.js [L]
+RewriteRule ^res/(.*)$ res/$1 [L]
+
+RewriteRule ^vendor/(.*).woff2$ vendor/$1.woff2 [L]
+RewriteRule ^res/fonts/(.*)$ res/fonts/$1 [L]
+
+RewriteRule ^vendor/(.*).(jpg|jpeg|svg|pdf|png|ico)$ vendor/$1.$2 [L]
+RewriteRule ^res/images/(.*)$ res/images/$1 [L]
+
+RewriteRule ^([a-z0-9A-Z_\/\.\-\@]+)/?(.*)$ index.php?r=$1&%{QUERY_STRING} [L]
+RewriteRule ^/?(.*)$ index.php?r=index&%{QUERY_STRING} [L]

@@ -1,0 +1,11 @@
+{
+    "require": {
+        "mezon/application": "1.1",
+        "mezon/pdocrud": "^1.0"
+    },
+    "autoload": {
+		"psr-4": {
+			"Game\\": "./src"
+		}
+	}
+}
