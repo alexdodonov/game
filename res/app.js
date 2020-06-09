@@ -274,6 +274,11 @@ function needDisplayResult(battleHistory) {
 	return false;
 }
 
+function compileMoveMessage(firstMove, secondMove) {
+	return 'Your move: <b>' + firstMove + '</b><br/>' + 
+		'Your opponent\'s move: <b>' + secondMove + '</b><br/><br/>';
+}
+
 function displayRoundResultIfNecessary(result) {
 	if(needDisplayResult(result.history)){
 		jQuery('#info-message').modal('show');
@@ -287,13 +292,11 @@ function displayRoundResultIfNecessary(result) {
 			message = 'Your opponent have won the last round<br/>';
 		}
 
-		if(result.you_are == 'usera'){
-			message = message + 'Your move: <b>' + lastRound['usera_move'] + '</b><br/>' + 
-				'Your opponent\'s move: <b>' + lastRound['userb_move'] + '</b><br/><br/>'
+		if(result.you_are == 'usera') {
+			message = message + compileMoveMessage(lastRound['usera_move'], lastRound['userb_move']);
 		}
-		if(result.you_are == 'userb'){
-			message = message + 'Your move: <b>' + lastRound['userb_move'] + '</b><br/>' + 
-				'Your opponent\'s move: <b>' + lastRound['usera_move'] + '</b><br/><br/>'
+		if(result.you_are == 'userb') {
+			message = message + compileMoveMessage(lastRound['userb_move'], lastRound['usera_move']);
 		}
 		if(lastRound.usera_move == 'no move' || lastRound.userb_move == 'no move') {
 			message = message + 'It\'s timeout'
@@ -308,7 +311,7 @@ function displayRoundResultIfNecessary(result) {
 }
 
 function displayBattleHistory(result) {
-	var battleHistory;
+	var battleHistory = '';
 	if(result.history.length==0) {
 		battleHistory = 'No rounds yet<br/>';
 	}
@@ -318,9 +321,9 @@ function displayBattleHistory(result) {
 	}
 
 	if(result.you_are == 'userb') {
-		for(var i = 0; i<result.history.length; i++) {
-			battleHistory = battleHistory + 'You: <b>' + result.history[i]['userb_move'] + 
-				'</b> and your opponent: <b>' + result.history[i]['usera_move'] + '</b><br/>';
+		for(var k = 0; k<result.history.length; k++) {
+			battleHistory = battleHistory + 'You: <b>' + result.history[k]['userb_move'] + 
+				'</b> and your opponent: <b>' + result.history[k]['usera_move'] + '</b><br/>';
 		}
 	} else {
 		for(var j = 0; j<result.history.length; j++) {

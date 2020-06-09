@@ -37,14 +37,14 @@ class AjaxKernel extends AjaxApplication
             'WRITE'
         ]);
 
-        if ($user->userWithEmailExists($_POST['email'])) {
-            $user->getConnection()->unlock();
-            $this->ajaxRequestResult('User already exists');
-        }
-
         if (filter_var($_POST['email'], FILTER_VALIDATE_EMAIL) === false) {
             $user->getConnection()->unlock();
             $this->ajaxRequestResult('Invalid email');
+        }
+
+        if ($user->userWithEmailExists($_POST['email'])) {
+            $user->getConnection()->unlock();
+            $this->ajaxRequestResult('User already exists');
         }
 
         if (strlen($_POST['password']) < 6) {
@@ -251,7 +251,7 @@ class AjaxKernel extends AjaxApplication
             'WRITE'
         ]);
 
-        $remainingTime = 30 - time() + strtotime($currentRound['creation_date']) - 3 * 3600;
+        $remainingTime = 30 - time() + strtotime($currentRound['creation_date']) - TIMEZONE_SHIFT;
         if ($remainingTime <= 0 && $currentRound['usera_move'] == 'none' && $currentRound['userb_move'] == 'none') {
             $round->restartRound($currentRound['id']);
             $remainingTime = 30;

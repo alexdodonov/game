@@ -7,6 +7,44 @@ class Battle
 {
     use ConnectionTrait;
 
+    private static $rules = [
+        'stone' => [
+            'stone' => 'none',
+            'paper' => 'userb',
+            'scissors' => 'usera',
+            'lizard' => 'usera',
+            'spok' => 'userb'
+        ],
+        'paper' => [
+            'stone' => 'usera',
+            'paper' => 'none',
+            'scissors' => 'userb',
+            'lizard' => 'userb',
+            'spok' => 'usera'
+        ],
+        'scissors' => [
+            'stone' => 'userb',
+            'paper' => 'usera',
+            'scissors' => 'none',
+            'lizard' => 'usera',
+            'spok' => 'userb'
+        ],
+        'lizard' => [
+            'stone' => 'userb',
+            'paper' => 'usera',
+            'scissors' => 'userb',
+            'lizard' => 'none',
+            'spok' => 'usera'
+        ],
+        'spok' => [
+            'stone' => 'usera',
+            'paper' => 'userb',
+            'scissors' => 'usera',
+            'lizard' => 'userb',
+            'spok' => 'none'
+        ],
+    ];
+
     /**
      * Calculating who is winner in each round
      *
@@ -16,60 +54,10 @@ class Battle
     public static function calculateWinners(array &$roundsHistory): void
     {
         foreach ($roundsHistory as $i => $round) {
-            if ($round['usera_move'] == 'stone' && $round['userb_move'] == 'stone') {
+            if ($round['usera_move'] == 'none' || $round['userb_move'] == 'none') {
                 $roundsHistory[$i]['winner'] = 'none';
-            } elseif ($round['usera_move'] == 'stone' && $round['userb_move'] == 'paper') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['usera_move'] == 'stone' && $round['userb_move'] == 'scissors') {
-                $roundsHistory[$i]['winner'] = 'usera';
-            } elseif ($round['usera_move'] == 'stone' && $round['userb_move'] == 'lizard') {
-                $roundsHistory[$i]['winner'] = 'usera';
-            } elseif ($round['usera_move'] == 'stone' && $round['userb_move'] == 'spok') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['usera_move'] == 'paper' && $round['userb_move'] == 'stone') {
-                $roundsHistory[$i]['winner'] = 'usera';
-            } elseif ($round['usera_move'] == 'paper' && $round['userb_move'] == 'paper') {
-                $roundsHistory[$i]['winner'] = 'none';
-            } elseif ($round['usera_move'] == 'paper' && $round['userb_move'] == 'scissors') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['usera_move'] == 'paper' && $round['userb_move'] == 'lizard') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['usera_move'] == 'paper' && $round['userb_move'] == 'spok') {
-                $roundsHistory[$i]['winner'] = 'usera';
-            } elseif ($round['usera_move'] == 'scissors' && $round['userb_move'] == 'stone') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['usera_move'] == 'scissors' && $round['userb_move'] == 'paper') {
-                $roundsHistory[$i]['winner'] = 'usera';
-            } elseif ($round['usera_move'] == 'scissors' && $round['userb_move'] == 'scissors') {
-                $roundsHistory[$i]['winner'] = 'none';
-            } elseif ($round['usera_move'] == 'scissors' && $round['userb_move'] == 'lizard') {
-                $roundsHistory[$i]['winner'] = 'usera';
-            } elseif ($round['usera_move'] == 'scissors' && $round['userb_move'] == 'spok') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['usera_move'] == 'lizard' && $round['userb_move'] == 'stone') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['usera_move'] == 'lizard' && $round['userb_move'] == 'paper') {
-                $roundsHistory[$i]['winner'] = 'usera';
-            } elseif ($round['usera_move'] == 'lizard' && $round['userb_move'] == 'scissors') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['usera_move'] == 'lizard' && $round['userb_move'] == 'lizard') {
-                $roundsHistory[$i]['winner'] = 'none';
-            } elseif ($round['usera_move'] == 'lizard' && $round['userb_move'] == 'spok') {
-                $roundsHistory[$i]['winner'] = 'usera';
-            } elseif ($round['usera_move'] == 'spok' && $round['userb_move'] == 'stone') {
-                $roundsHistory[$i]['winner'] = 'usera';
-            } elseif ($round['usera_move'] == 'spok' && $round['userb_move'] == 'paper') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['usera_move'] == 'spok' && $round['userb_move'] == 'scissors') {
-                $roundsHistory[$i]['winner'] = 'usera';
-            } elseif ($round['usera_move'] == 'spok' && $round['userb_move'] == 'lizard') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['usera_move'] == 'spok' && $round['userb_move'] == 'spok') {
-                $roundsHistory[$i]['winner'] = 'none';
-            } elseif ($round['usera_move'] == 'none') {
-                $roundsHistory[$i]['winner'] = 'userb';
-            } elseif ($round['userb_move'] == 'none') {
-                $roundsHistory[$i]['winner'] = 'usera';
+            } else {
+                $roundsHistory[$i]['winner'] = self::$rules[$round['usera_move']][$round['userb_move']];
             }
         }
     }
