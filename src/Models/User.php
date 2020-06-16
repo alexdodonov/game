@@ -67,7 +67,11 @@ class User
      */
     public function userWithEmailExists(string $email): bool
     {
-        return count($this->getConnection()->select('*', 'user', 'email LIKE "' . htmlspecialchars($email) . '"')) > 0;
+        $this->getConnection()->prepare('SELECT id FROM user WHERE email = :email');
+
+        return count($this->getConnection()->execSelect([
+            ':email' => $email
+        ])) > 0;
     }
 
     /**

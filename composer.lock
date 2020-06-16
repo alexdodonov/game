@@ -200,22 +200,23 @@
         },
         {
             "name": "mezon/html-template",
-            "version": "1.0.2",
+            "version": "1.0.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alexdodonov/mezon-html-template.git",
-                "reference": "09adf0038bdf0bff8b89baeef7c138365c56887a"
+                "reference": "9191eb0b45beb7d0ae59279469563a18cf791242"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alexdodonov/mezon-html-template/zipball/09adf0038bdf0bff8b89baeef7c138365c56887a",
-                "reference": "09adf0038bdf0bff8b89baeef7c138365c56887a",
+                "url": "https://api.github.com/repos/alexdodonov/mezon-html-template/zipball/9191eb0b45beb7d0ae59279469563a18cf791242",
+                "reference": "9191eb0b45beb7d0ae59279469563a18cf791242",
                 "shasum": ""
             },
             "require": {
                 "mezon/conf": "^1.0.0",
                 "mezon/template-engine": "^1.0.0",
-                "php": ">=7.2.0"
+                "php": ">=7.2.0",
+                "phpunit/phpunit": "^8.5"
             },
             "type": "library",
             "autoload": {
@@ -237,25 +238,26 @@
             ],
             "description": "Small html-template script",
             "homepage": "https://github.com/alexdodonov/mezon-html-template",
-            "time": "2020-04-21T15:45:27+00:00"
+            "time": "2020-06-05T15:29:13+00:00"
         },
         {
             "name": "mezon/pdocrud",
-            "version": "1.0.5",
+            "version": "1.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alexdodonov/mezon-pdocrud.git",
-                "reference": "083d88f6ac6d6378b6ca24c9ad2591bc5178f15b"
+                "reference": "326302c3ce2983ab44dcabf3136dd4a54feb53bd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alexdodonov/mezon-pdocrud/zipball/083d88f6ac6d6378b6ca24c9ad2591bc5178f15b",
-                "reference": "083d88f6ac6d6378b6ca24c9ad2591bc5178f15b",
+                "url": "https://api.github.com/repos/alexdodonov/mezon-pdocrud/zipball/326302c3ce2983ab44dcabf3136dd4a54feb53bd",
+                "reference": "326302c3ce2983ab44dcabf3136dd4a54feb53bd",
                 "shasum": ""
             },
             "require": {
                 "mezon/conf": "^1.0.0",
-                "php": ">=7.2.0"
+                "php": ">=7.2.0",
+                "phpunit/phpunit": "^8.5"
             },
             "type": "library",
             "autoload": {
@@ -277,7 +279,7 @@
             ],
             "description": "Simple PDO wrapper",
             "homepage": "https://github.com/alexdodonov/mezon-pdocrud",
-            "time": "2020-05-21T11:25:44+00:00"
+            "time": "2020-06-16T13:38:05+00:00"
         },
         {
             "name": "mezon/rest-exception",
@@ -320,16 +322,16 @@
         },
         {
             "name": "mezon/router",
-            "version": "1.0.17",
+            "version": "1.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/alexdodonov/mezon-router.git",
-                "reference": "c8fcb0fa8d9254f1c6beab22b13143a1c7d24cd9"
+                "reference": "96c2bcaa9bf6e696b1b11cc3b78dfeab37270b7e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/alexdodonov/mezon-router/zipball/c8fcb0fa8d9254f1c6beab22b13143a1c7d24cd9",
-                "reference": "c8fcb0fa8d9254f1c6beab22b13143a1c7d24cd9",
+                "url": "https://api.github.com/repos/alexdodonov/mezon-router/zipball/96c2bcaa9bf6e696b1b11cc3b78dfeab37270b7e",
+                "reference": "96c2bcaa9bf6e696b1b11cc3b78dfeab37270b7e",
                 "shasum": ""
             },
             "require": {
@@ -356,7 +358,7 @@
             ],
             "description": "Small and fast routing framework",
             "homepage": "https://github.com/alexdodonov/mezon-router",
-            "time": "2020-06-01T12:54:25+00:00"
+            "time": "2020-06-09T09:20:54+00:00"
         },
         {
             "name": "mezon/template-engine",
@@ -1013,16 +1015,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "8.5.5",
+            "version": "8.5.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "63dda3b212a0025d380a745f91bdb4d8c985adb7"
+                "reference": "3f9c4079d1407cd84c51c02c6ad1df6ec2ed1348"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/63dda3b212a0025d380a745f91bdb4d8c985adb7",
-                "reference": "63dda3b212a0025d380a745f91bdb4d8c985adb7",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/3f9c4079d1407cd84c51c02c6ad1df6ec2ed1348",
+                "reference": "3f9c4079d1407cd84c51c02c6ad1df6ec2ed1348",
                 "shasum": ""
             },
             "require": {
@@ -1102,7 +1104,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-05-22T13:51:52+00:00"
+            "time": "2020-06-15T10:45:47+00:00"
         },
         {
             "name": "sebastian/code-unit-reverse-lookup",
@@ -1833,16 +1835,16 @@
         },
         {
             "name": "webmozart/assert",
-            "version": "1.8.0",
+            "version": "1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webmozart/assert.git",
-                "reference": "ab2cb0b3b559010b75981b1bdce728da3ee90ad6"
+                "reference": "9dc4f203e36f2b486149058bade43c851dd97451"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webmozart/assert/zipball/ab2cb0b3b559010b75981b1bdce728da3ee90ad6",
-                "reference": "ab2cb0b3b559010b75981b1bdce728da3ee90ad6",
+                "url": "https://api.github.com/repos/webmozart/assert/zipball/9dc4f203e36f2b486149058bade43c851dd97451",
+                "reference": "9dc4f203e36f2b486149058bade43c851dd97451",
                 "shasum": ""
             },
             "require": {
@@ -1850,6 +1852,7 @@
                 "symfony/polyfill-ctype": "^1.8"
             },
             "conflict": {
+                "phpstan/phpstan": "<0.12.20",
                 "vimeo/psalm": "<3.9.1"
             },
             "require-dev": {
@@ -1877,7 +1880,7 @@
                 "check",
                 "validate"
             ],
-            "time": "2020-04-18T12:12:48+00:00"
+            "time": "2020-06-16T10:16:42+00:00"
         }
     ],
     "packages-dev": [],

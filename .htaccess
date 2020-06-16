@@ -10,6 +10,8 @@ php_flag html_errors on
 # use mod_rewrite for pretty URL support
 RewriteEngine on
 
+RewriteRule ^(.*).png$ $1.png [L]
+
 RewriteRule ^vendor/(.*).css$ vendor/$1.css [L]
 RewriteRule ^res/css/(.*)$ res/css/$1 [L]
 
