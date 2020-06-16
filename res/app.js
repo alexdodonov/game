@@ -115,45 +115,20 @@ function initUserForms() {
 	});
 }
 
-function initTicker() {
-	if(jQuery('.users-list-container').length) {
-		setInterval(async function() {
-			let response = await fetch('/ajax/tick', {
-				method: 'POST'
-			});
-
-			await response.json();
-		}, 1000);
-	}
-}
-
-function initTableReloader() {
-	if(jQuery('.users-list-container').length) {
-		setInterval(async function() {
-			let response = await fetch('/ajax/users-table', {
-				method: 'POST'
-			});
-
-			let result = await response.json();
-
-			jQuery('.users-list-container').html(result);
-		}, 1000);
-	}
-}
-
 function hitUser(element) {
 	jQuery('#hit-modal input[name=user-id]').val(jQuery(element).attr('data-id'));
 }
 
 function initFightLauncher() {
+	// setup dialogs
 	jQuery('#hit-modal button.btn-primary').on('click', async function() {
 		var formData = new FormData();
 		formData.append('user-id', jQuery('#hit-modal input[name=user-id]').val());
-	
+
 		let response = await fetch('/ajax/invite', {
-			method: 'POST',
-			body: formData
-		});
+				method: 'POST',
+				body: formData
+			});
 
 		let result = await response.json();
 
@@ -172,22 +147,8 @@ function initFightLauncher() {
 	});
 }
 
-function initPickInvite() {
+function initPickInviteForms() {
 	if(jQuery('.users-list-container').length) {
-		setInterval(async function() {
-			let response = await fetch('/ajax/pick-invite', {
-				method: 'POST'
-			});
-
-			let result = await response.json();
-
-			if(result != 'no invites'){
-				jQuery('#prompt-modal').modal('show');
-				jQuery('#prompt-modal .modal-body').html('You have invite. Accept?');
-				jQuery('#prompt-modal').find('input[name=data-id]').val(result);
-			}
-		}, 1000);
-
 		jQuery('#prompt-modal button.btn-primary').on('click', async function(){
 			// accept invite
 			var formData = new FormData();
@@ -199,7 +160,6 @@ function initPickInvite() {
 			});
 
 			let result = await response.json();
-			document.location.reload();
 		});
 
 		jQuery('#prompt-modal button.btn-danger').on('click', async function(){
@@ -215,22 +175,6 @@ function initPickInvite() {
 			let result = await response.json();
 			jQuery('#prompt-modal').modal('hide');
 		});
-	}
-}
-
-function initBattleTracker() {
-	if(jQuery('.users-list-container').length) {
-		setInterval(async function() {
-			let response = await fetch('/ajax/battle-started', {
-				method: 'GET'
-			});
-
-			let result = await response.json();
-			if(result == 'ok') 
-			{
-				document.location.reload();
-			}
-		}, 1000);
 	}
 }
 
@@ -307,6 +251,9 @@ function displayRoundResultIfNecessary(result) {
 			jQuery('#info-message').modal('hide');
 			}, 5000
 		);
+
+		startCountdown();
+		jQuery('.remaining-time').html(30);
 	}
 }
 
@@ -332,8 +279,6 @@ function displayBattleHistory(result) {
 		}
 	}
 
-	jQuery('.remaining-time').html(result.remaining_time);
-
 	jQuery('.rounds-list-container').html(battleHistory);
 }
 
@@ -350,24 +295,6 @@ function displayBattleResultIfNecessary(result) {
 		jQuery('#info-message').modal('hide');
 		jQuery('#battle-result').modal({backdrop: 'static', keyboard: false});
 		jQuery('#battle-result .modal-body').html('The winner is <b>' + result.userb_login + '</b>');
-	}
-}
-
-function initBattleRunner() {
-	if(jQuery('.rounds-list-container').length) {
-		setInterval(async function() {
-			let response = await fetch('/ajax/battle-runner', {
-				method: 'GET'
-			});
-
-			let result = await response.json();
-			
-			displayBattleHistory(result);
-
-			displayRoundResultIfNecessary(result);
-
-			displayBattleResultIfNecessary(result);
-		}, 1000);
 	}
 }
 
@@ -400,17 +327,101 @@ async function leaveBattle() {
 		method: 'POST'
 	});
 
-	let result = await response.json();
+	await response.json();
 
 	document.location.reload();
 }
 
+function parseLongPollWaitResult(result) {
+	if('users-table' in result) {
+		jQuery('.users-list-container').html(result['users-table']);
+	}
+
+	if('invite-id' in result) {
+		jQuery('#prompt-modal').modal('show');
+		jQuery('#prompt-modal .modal-body').html('You have invite. Accept?');
+		jQuery('#prompt-modal').find('input[name=data-id]').val(result['invite-id']);
+	}
+
+	if('battle-started' in result && result['battle-started']) {
+		document.location.reload();
+		return;
+	}
+
+	runLongPollWait();
+}
+
+async function runLongPollWait() {
+	if(jQuery('.users-list-container').length) {
+		let response = await fetch('/ajax/long-poll-wait/');
+
+		let result = await response.json();
+
+		parseLongPollWaitResult(result);
+	}
+}
+
+var countDown = 0;
+
+function startCountdown() {
+	if(countDown != 0) {
+		clearInterval(countDown);
+	}
+
+	countDown = setInterval(function(){
+		var currentTime = jQuery('.remaining-time').html();
+		currentTime -= 1;
+		jQuery('.remaining-time').html(currentTime);
+
+		if(currentTime == 0) {
+			jQuery('.remaining-time').html(30);
+		}
+	}, 1000);
+}
+
+async function initRoundsHistory() {
+	if(jQuery('.rounds-list-container').length) {
+		// setup initial data
+		let response = await fetch('/ajax/battle-runner');
+
+		let result = await response.json();
+
+		displayBattleHistory(result);
+
+		jQuery('.remaining-time').html(result.remaining_time);
+		
+		startCountdown();
+	}
+}
+
+async function runLongPollBattle() {
+	if(jQuery('.rounds-list-container').length) {
+		// start long poll
+		let response = await fetch('/ajax/long-poll-battle/');
+
+		let result = await response.json();
+
+		if('history' in result) {
+			displayBattleHistory(result);
+
+			displayRoundResultIfNecessary(result);
+
+			displayBattleResultIfNecessary(result);
+		}
+
+		if(result.one_user_left_the_battle == false) {
+			runLongPollBattle();
+		}
+	}
+}
+
 (function() {
 	initUserForms();
-	initTicker();
-	initTableReloader();
+	initPickInviteForms();
+
+	runLongPollWait();
+
 	initFightLauncher();
-	initPickInvite();
-	initBattleRunner();
-	initBattleTracker();
+	runLongPollBattle();
+	initRoundsHistory();
 })();

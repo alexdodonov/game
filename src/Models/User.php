@@ -81,7 +81,7 @@ class User
             'user.id, email, "ready" AS status, MAX(tick.creation_date) AS last_activity',
             'user, tick',
             'user.id = tick.user_id AND user.id <> ' . intval($_SESSION['user-id']) .
-            ' GROUP BY user.id HAVING last_activity >= DATE_SUB(NOW(), INTERVAL 15 SECOND)');
+            ' GROUP BY user.id HAVING last_activity >= DATE_SUB(NOW(), INTERVAL 15 SECOND) ORDER BY user.id');
     }
 
     /**

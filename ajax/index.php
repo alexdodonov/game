@@ -3,17 +3,11 @@ namespace Game;
 
 use Mezon\Application\AjaxApplication;
 use Mezon\TemplateEngine\TemplateEngine;
+use Mezon\Functional\Fetcher;
 require_once (__DIR__ . '/../conf/conf.php');
 
 class AjaxKernel extends AjaxApplication
 {
-
-    protected function validateAuthorizationForAjaxRequests()
-    {
-        if (isset($_SESSION['user-id']) === false) {
-            throw (new \Exception('User must be authorized'));
-        }
-    }
 
     public function actionLogin(): void
     {
@@ -65,31 +59,15 @@ class AjaxKernel extends AjaxApplication
         $this->ajaxRequestResult("ok");
     }
 
-    public function actionTick(): void
-    {
-        $this->validateAuthorizationForAjaxRequests();
-
-        $tick = new Models\Tick();
-        $tick->createTick($_SESSION['user-id']);
-
-        $this->ajaxRequestResult("ok");
-    }
-
     public function actionUsersTable(): void
     {
-        $userModel = new Models\User();
-        $users = $userModel->getOnlineUsers();
-
-        $content = file_get_contents(__DIR__ . '/../res/blocks/users-table.tpl');
-
-        $this->ajaxRequestResult(
-            count($users) > 0 ? TemplateEngine::printRecord($content, [
-                'users' => $users
-            ]) : 'No online users');
+        $this->ajaxRequestResult($this->getOnlineUsersTable());
     }
 
     public function actionInvite(): void
     {
+        flush();
+
         $this->validateAuthorizationForAjaxRequests();
 
         $inviteModel = new Models\Invite();
@@ -107,19 +85,6 @@ class AjaxKernel extends AjaxApplication
             $inviteModel->createInvite($_SESSION['user-id'], $_POST['user-id']);
             $inviteModel->getConnection()->unlock();
             $this->ajaxRequestResult('ok');
-        }
-    }
-
-    public function actionPickInvite(): void
-    {
-        $inviteModel = new Models\Invite();
-
-        if ($inviteModel->inviteForUserExists($_SESSION['user-id'])) {
-            $inviteId = $inviteModel->getInviteIdForUser($_SESSION['user-id']);
-
-            $this->ajaxRequestResult($inviteId);
-        } else {
-            $this->ajaxRequestResult('no invites');
         }
     }
 
@@ -251,6 +216,11 @@ class AjaxKernel extends AjaxApplication
             'WRITE'
         ]);
 
+        $round->getConnection()->unlock();
+
+        Models\Battle::calculateWinners($roundsHistory);
+        list ($winsA, $winsB) = Models\Battle::calculateWins($roundsHistory);
+        
         $remainingTime = 30 - time() + strtotime($currentRound['creation_date']) - TIMEZONE_SHIFT;
         if ($remainingTime <= 0 && $currentRound['usera_move'] == 'none' && $currentRound['userb_move'] == 'none') {
             $round->restartRound($currentRound['id']);
@@ -260,22 +230,17 @@ class AjaxKernel extends AjaxApplication
             $remainingTime = 30;
         }
 
-        $round->getConnection()->unlock();
-
-        Models\Battle::calculateWinners($roundsHistory);
-        list ($winsA, $winsB) = Models\Battle::calculateWins($roundsHistory);
-
         $user = new Models\User();
 
         $this->ajaxRequestResult(
             [
                 'history' => $roundsHistory,
                 'you_are' => $userBattle['usera_id'] == $_SESSION['user-id'] ? 'usera' : 'userb',
-                'remaining_time' => $remainingTime,
                 'usera_login' => $user->getUserLoginById($userBattle['usera_id']),
                 'userb_login' => $user->getUserLoginById($userBattle['userb_id']),
                 'usera_wins' => $winsA,
                 'userb_wins' => $winsB,
+                'remaining_time' => $remainingTime,
                 'one_user_left_the_battle' => $userBattle['leave_user_id'] != 0
             ]);
     }
@@ -291,6 +256,228 @@ class AjaxKernel extends AjaxApplication
         $battle->leaveBattle($_SESSION['user-id']);
         $battle->getConnection()->unlock();
         $this->ajaxRequestResult('ok');
+    }
+
+    // bext gen methods
+
+    /**
+     * Method compiles list of users
+     *
+     * @param array $users
+     *            list of online users
+     * @return string compiled table with isers
+     */
+    private function compileOnlineUsersTable(array $users): string
+    {
+        $content = file_get_contents(__DIR__ . '/../res/blocks/users-table.tpl');
+
+        return count($users) > 0 ? TemplateEngine::printRecord($content, [
+            'users' => $users
+        ]) : 'No online users';
+    }
+
+    /**
+     * Method compiles list of online users
+     *
+     * @return string
+     */
+    private function getOnlineUsersTable(): string
+    {
+        $userModel = new Models\User();
+        $users = $userModel->getOnlineUsers();
+
+        return $this->compileOnlineUsersTable($users);
+    }
+
+    /**
+     *
+     * @return string
+     */
+    private function getOnlineUsersTableIfNecessary(): string
+    {
+        $path = __DIR__ . '/../data/' . $this->sessionUserId . '.online-users-ids';
+        $onlineUsersIds = @file_get_contents($path);
+
+        if ($onlineUsersIds === false) {
+            file_put_contents($path, '');
+        }
+
+        $userModel = new Models\User();
+        $users = $userModel->getOnlineUsers();
+
+        $ids = Fetcher::getFields($users, 'id');
+        $ids = implode(', ', $ids);
+
+        if ($onlineUsersIds !== $ids) {
+            file_put_contents($path, $ids);
+
+            return $this->compileOnlineUsersTable($users);
+        } else {
+            return '';
+        }
+    }
+
+    /**
+     * Pollin period
+     *
+     * @var integer
+     */
+    private $pollingPeriod = 30;
+
+    /**
+     * Endpoint for long polling while waiting for invitation on battle
+     */
+    public function actionLongPollWait(): void
+    {
+        flush();
+
+        $this->validateAuthorizationForAjaxRequestsNonBlocking();
+
+        $start = time();
+
+        do {
+            sleep(1);
+
+            $result = [];
+
+            // ticker
+            $tick = new Models\Tick();
+            $tick->createTick($this->sessionUserId);
+
+            // users table
+            $usersTable = $this->getOnlineUsersTableIfNecessary();
+            if ($usersTable !== '') {
+                $result['users-table'] = $usersTable;
+            }
+
+            // pick invite
+            $inviteModel = new Models\Invite();
+            if ($inviteModel->inviteForUserExists($this->sessionUserId)) {
+                $inviteId = $inviteModel->getInviteIdForUser($this->sessionUserId);
+                $result['invite-id'] = $inviteId;
+            }
+
+            // are we in battle?
+            $battle = new Models\Battle();
+            if ($battle->userInBattle($this->sessionUserId) === true) {
+                $result['battle-started'] = true;
+            }
+
+            // send data if necessary
+            if (count($result) > 0) {
+                $this->ajaxRequestResult($result);
+            }
+
+            if (time() - $start >= $this->pollingPeriod) {
+                $this->ajaxRequestResult([]);
+            }
+
+            if (connection_aborted() == 1) {
+                $this->ajaxRequestResult([]);
+            }
+        } while (true);
+    }
+
+    /**
+     * Endpoint for long polling while battle
+     */
+    public function actionLongPollBattle(): void
+    {
+        flush();
+
+        $this->validateAuthorizationForAjaxRequestsNonBlocking();
+
+        $start = time();
+
+        do {
+            sleep(1);
+
+            $roundWasRestarted = false;
+
+            $battle = new Models\Battle();
+
+            $userBattle = $battle->getUserBattle($this->sessionUserId);
+
+            $round = new Models\Round();
+            $currentRound = $round->getCurrentRound($userBattle['id']);
+            $remainingTime = 30 - time() + strtotime($currentRound['creation_date']) - TIMEZONE_SHIFT;
+            if ($remainingTime <= 0 && $currentRound['usera_move'] == 'none' && $currentRound['userb_move'] == 'none') {
+                $round->restartRound($currentRound['id']);
+                $roundWasRestarted = true;
+            } elseif ($remainingTime <= 0 && ($currentRound['usera_move'] == 'none' || $currentRound['userb_move'] == 'none')) {
+                $round->createRound($userBattle['id']);
+            }
+
+            $roundsHistory = $round->getRoundsHistory($userBattle['id']);
+
+            $path = __DIR__ . '/../data/' . $this->sessionUserId . '.rounds-history-hash';
+            $roundsHistoryHash = @file_get_contents($path);
+            if ($roundsHistoryHash === false) {
+                $roundsHistoryHash = md5(serialize($roundsHistory));
+                file_put_contents($path, $roundsHistoryHash);
+            }
+
+            if ($roundsHistoryHash !== md5(serialize($roundsHistory)) || $userBattle['leave_user_id'] != 0 || $roundWasRestarted) {
+                $roundsHistoryHash = md5(serialize($roundsHistory));
+                file_put_contents($path, $roundsHistoryHash);
+
+                Models\Battle::calculateWinners($roundsHistory);
+                list ($winsA, $winsB) = Models\Battle::calculateWins($roundsHistory);
+
+                $user = new Models\User();
+
+                $this->ajaxRequestResult(
+                    [
+                        'history' => $roundsHistory,
+                        'you_are' => $userBattle['usera_id'] == $this->sessionUserId ? 'usera' : 'userb',
+                        'usera_login' => $user->getUserLoginById($userBattle['usera_id']),
+                        'userb_login' => $user->getUserLoginById($userBattle['userb_id']),
+                        'usera_wins' => $winsA,
+                        'userb_wins' => $winsB,
+                        'one_user_left_the_battle' => $userBattle['leave_user_id'] != 0,
+                        'round_restarted' => $roundWasRestarted
+                    ]);
+            }
+
+            if (time() - $start >= $this->pollingPeriod) {
+                $this->ajaxRequestResult([]);
+            }
+
+            if (connection_aborted() == 1) {
+                $this->ajaxRequestResult([]);
+            }
+        } while (true);
+    }
+
+    /**
+     * Session user id
+     *
+     * @var integer
+     */
+    protected $sessionUserId = 0;
+
+    /**
+     * Authentication validator
+     */
+    protected function validateAuthorizationForAjaxRequests(): void
+    {
+        if (isset($_SESSION['user-id']) === false) {
+            throw (new \Exception('User must be authorized'));
+        }
+    }
+
+    /**
+     * Authentication validator wich is non blocking
+     */
+    protected function validateAuthorizationForAjaxRequestsNonBlocking(): void
+    {
+        if (isset($_SESSION['user-id']) === false) {
+            throw (new \Exception('User must be authorized'));
+        }
+
+        $this->sessionUserId = $_SESSION['user-id'];
+
+        session_write_close();
     }
 }
 
